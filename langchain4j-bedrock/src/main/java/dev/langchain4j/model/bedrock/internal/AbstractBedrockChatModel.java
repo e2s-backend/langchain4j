@@ -13,7 +13,6 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient;
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest;
@@ -56,9 +55,9 @@ public abstract class AbstractBedrockChatModel<T extends BedrockChatModelRespons
     @Builder.Default
     private final String[] stopSequences = new String[]{};
     @Builder.Default
-    private final int socketTimeout = 60;
+    private final int timeout = 60;
     @Getter(lazy = true)
-    private final BedrockRuntimeClient client = initClient(socketTimeout);
+    private final BedrockRuntimeClient client = initClient(timeout);
 
     @Override
     public Response<AiMessage> generate(List<ChatMessage> messages) {
