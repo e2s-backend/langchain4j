@@ -12,12 +12,15 @@ import lombok.experimental.SuperBuilder;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient;
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest;
 import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelResponse;
 
 import java.nio.charset.Charset;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,8 +55,10 @@ public abstract class AbstractBedrockChatModel<T extends BedrockChatModelRespons
     private final float topP = 0.999f;
     @Builder.Default
     private final String[] stopSequences = new String[]{};
+    @Builder.Default
+    private final int socketTimeout = 60;
     @Getter(lazy = true)
-    private final BedrockRuntimeClient client = initClient();
+    private final BedrockRuntimeClient client = initClient(socketTimeout);
 
     @Override
     public Response<AiMessage> generate(List<ChatMessage> messages) {
@@ -159,9 +164,17 @@ public abstract class AbstractBedrockChatModel<T extends BedrockChatModelRespons
      *
      * @return bedrock client
      */
-    private BedrockRuntimeClient initClient() {
+    private BedrockRuntimeClient initClient(int seconds) {
+
+        Duration socketTimeout = Duration.ofSeconds(seconds);
+
+        ClientOverrideConfiguration clientConfig = ClientOverrideConfiguration.builder()
+                .apiCallTimeout(socketTimeout)
+                .build();
+
         return BedrockRuntimeClient.builder()
                 .region(region)
+                .overrideConfiguration(clientConfig)
                 .credentialsProvider(credentialsProvider)
                 .build();
     }
